@@ -1,4 +1,7 @@
-;(function () {
+AuthItems = {};
+
+(function () {
+  'use strict';
 
 /**
  * Convenience functions for use on client.
@@ -15,10 +18,10 @@
 //
 // Use a semi-private variable rather than declaring Handlebars
 // helpers directly so that we can unit test the helpers.
-// XXX For some reason, the Handlebars helpers are not registered 
+// XXX For some reason, the Handlebars helpers are not registered
 // before the tests run.
 //
-Roles._handlebarsHelpers = {
+AuthItems._handlebarsHelpers = {
 
   /**
    * Handlebars helper to check if current user is in at least one
@@ -47,17 +50,31 @@ Roles._handlebarsHelpers = {
       roles = [role]
     }
 
-    return Roles.userIsInRole(user, roles)
+    return AuthManager.userIsInRole(user, roles)
+  },
+
+  /**
+   * Handlebars helper to check if the current user has this role or permission.
+   *
+   * @method checkAccess
+   * @param authItemName string
+   * @return boolean true if current user has access
+   */
+  checkAccess: function(authItemName) {
+    var user = Meteor.user()
+    if (!user) return false
+    return AuthManager.checkAccess(user, authItemName)
   }
+
 }
 
 
 if ('undefined' !== typeof Handlebars) {
-  _.each(Roles._handlebarsHelpers, function (func, name) {
+  _.each(AuthItems._handlebarsHelpers, function (func, name) {
     Handlebars.registerHelper(name, func)
   })
 } else {
-  console.log('WARNING: Roles Handlebars helpers not registered. Handlebars not defined')
+  console.log('WARNING: authorization Handlebars helpers not registered. Handlebars not defined')
 }
 
 }());

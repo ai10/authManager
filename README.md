@@ -33,9 +33,9 @@ Run locally:
 
 ### Changes to default Meteor behavior
 
-  1. User entries in the ```Meteor.users``` collection gain a new field named ```roles``` which is an array of strings corresponding to the user's roles.
-  2. A new collection ```Meteor.roles``` contains a global list of defined role names.
-  3. The currently logged-in user's ```roles``` field is automatically published to the client.
+  1. User entries in the ```Meteor.users``` collection gain a new field named ```authItems``` which is an array of strings corresponding to the user's roles and permissions.
+  2. A new collection ```Meteor.authItems``` contains a global list of defined auth item names.
+  3. The currently logged-in user's ```authItems``` field is automatically published to the client.
 
 <br />
 
@@ -75,7 +75,7 @@ Add users to roles:
     });
 
     if (user.roles.length > 0) {
-      Roles.addUsersToRoles(id, user.roles);
+      AuthManager.addUsersToRoles(id, user.roles);
     }
 
   });
@@ -89,7 +89,7 @@ Check user roles before publishing sensitive data:
 
 // Give authorized users access to sensitive data
 Meteor.publish('secrets', function () {
-  if (Roles.userIsInRole(this.userId, ['view-secrets','admin'])) {
+  if (AuthManager.userIsInRole(this.userId, ['view-secrets','admin'])) {
 
     return Meteor.secrets.find();
 
@@ -110,7 +110,7 @@ Prevent non-authorized users from creating new users:
   Accounts.validateNewUser(function (user) {
     var loggedInUser = Meteor.user();
 
-    if (Roles.userIsInRole(loggedInUser, ['admin','manage-users'])) {
+    if (AuthManager.userIsInRole(loggedInUser, ['admin','manage-users'])) {
       return true;
     }
 
@@ -122,10 +122,10 @@ Prevent non-authorized users from creating new users:
 
 -- **Client** --
 
-Client javascript has access to all the same Roles functions as the server with the addition of a ```isInRole``` handlebars helper which is automatically registered by the Roles package.
+Client javascript has access to some of the same AuthManager functions as the server with the addition of a ```isInRole``` handlebars helper which is automatically registered.
 
 Like all Meteor applications, client-side checks are a convenience, rather than a true security implementation
-since Meteor bundles the same client-side code to all users.  Providing the Roles functions client-side also allows for latency compensation during Meteor method calls.
+since Meteor bundles the same client-side code to all users.  Providing the AuthManager functions client-side also allows for latency compensation during Meteor method calls.
 
 NOTE: Any sensitive data needs to be controlled server-side to prevent unwanted disclosure. To be clear, Meteor sends all templates, client-side javascript, and published data to the client's browser.  This is by design and is a good thing.  The following example is just sugar to help improve the user experience for normal users.  Those interested in seeing the 'admin_nav' template in the example below will still be able to do so by manually reading the bundled ```client.js``` file. It won't be pretty but it is possible. But this is not a problem as long as the actual data is restricted server-side.
 
@@ -139,26 +139,6 @@ NOTE: Any sensitive data needs to be controlled server-side to prevent unwanted 
   {{/if}}
 </template>
 ```
-
-<br />
-
-### Documentation
-
-Meteor-roles online API docs found here: http://alanning.github.com/meteor-roles/
-
-API docs generated using [YUIDoc][2]
-
-To re-generate documentation:
-  1. install YUIDoc
-  2. ```cd meteor-authorization```
-  3. ```yuidoc```
-
-To serve documentation locally:
-  1. install YUIDoc
-  2. ```cd meteor-authorization```
-  3. ```yuidoc --server```
-  4. point browser at http://localhost:3000/
-
 
 <br />
 
@@ -182,5 +162,3 @@ Step 2 needs to be run in the main 'meteor-authorization' directory and the './'
 
 
 [1]: https://github.com/oortcloud/meteorite "Meteorite"
-
-[2]: http://yui.github.com/yuidoc/ "YUIDoc"
