@@ -33,7 +33,9 @@ AuthManager = {};
       return false
 
     var userAuthItems = buildValidAuthItems(user.authItems);
-    return _.contains(userAuthItems, authItemName)
+    var hasAccess = _.contains(userAuthItems, authItemName)
+    //console.log('Does ' + user + ' have access to ' + authItemName, hasAccess)
+    return hasAccess
   }
 
   /**
