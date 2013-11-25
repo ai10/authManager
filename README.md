@@ -147,12 +147,12 @@ NOTE: Any sensitive data needs to be controlled server-side to prevent unwanted 
 
 To run tests:
   1. ```cd meteor-authorization```
-  2. ```meteor test-packages ./roles```
+  2. ```meteor test-packages ./authorization```
   3. point browser at http://localhost:3000/
 
-_NOTE_: If you see an error message regarding **"The package named roles does not exist"** that means you are either:
+_NOTE_: If you see an error message regarding **"The package named authorization does not exist"** that means you are either:
   a) in the wrong directory or
-  b) left off the './' in front of 'roles' in step 2.
+  b) left off the './' in front of 'authorization' in step 2.
 
 Step 2 needs to be run in the main 'meteor-authorization' directory and the './' is needed because otherwise Meteor only looks in directories named 'packages'.
 
