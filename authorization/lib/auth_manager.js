@@ -10,32 +10,57 @@ AuthManager = {};
   'use strict';
 
   /**
-   * Define TYPE constants
+   * Define TYPE constants.
    */
   AuthManager.TYPES = {
     ROLE: 'role',
     PERMISSION: 'permission'
   }
 
+  var userAuthItemsCache = {};
+
   /**
    * Check if this user has access to this authItem.
    * If it's a role, check all child permissions.
    *
    * @method checkAccess
-   * @param user User|string     User object or userId
-   * @param authItemName string  Name of the authItem to check
-   * @return boolean true        If user has this authItem
+   * @param User|String user     User object or userId
+   * @param String authItemName  Name of the authItem to check
+   * @return Boolean             If user has this authItem
    */
   AuthManager.checkAccess = function(user, authItemName) {
-    if ('string' === typeof user)
+    if ('string' === typeof user) {
       user = Meteor.users.findOne({ _id: user }) // convert to user object
-    if (!user)
+    }
+    if (!user) {
       return false
+    }
 
-    var userAuthItems = buildValidAuthItems(user.authItems);
+    var userAuthItems = getUserAuthItems(user);
     var hasAccess = _.contains(userAuthItems, authItemName)
     //console.log('Does ' + user + ' have access to ' + authItemName, hasAccess)
     return hasAccess
+  }
+
+  /**
+   * Return this user's auth items.
+   * Building the auth item tree is computationally expensive, so compute once and cache.
+   *
+   * @param User user   Meteor.user object
+   * @return Strings[]  List of auth items
+   */
+  function getUserAuthItems(user) {
+    if (Meteor.isServer) {
+      // Don't use cache on the server, since we don't have cache invalidation.
+      // Will cause issues on the client, since users access checks will be using cached values.
+      return buildValidAuthItems(user.authItems);
+    }
+
+    if (userAuthItemsCache[user._id] === undefined) {
+      userAuthItemsCache[user._id] = buildValidAuthItems(user.authItems);
+    }
+
+    return userAuthItemsCache[user._id];
   }
 
   /**
@@ -43,8 +68,8 @@ AuthManager = {};
    * Including any nested items
    * TODO: This code is in need of a rewrite and to be given some thought.
    *
-   * @param rawAuthItems array  Auth item names
-   * @return array
+   * @param String[] rawAuthItems   Auth item names
+   * @return Strings[]
    */
   function buildValidAuthItems(rawAuthItems) {
     if (!_.isArray(rawAuthItems) || rawAuthItems.length === 0)
