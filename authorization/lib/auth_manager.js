@@ -36,6 +36,12 @@ AuthManager = {};
       return false
     }
 
+    // Require user and auth items to be loaded before doing the checks.
+    // Prevents checking permissions and caching them if they are not loaded yet.
+    if (user.authItems !== undefined && Meteor.authItems.find().count() <= 0) {
+      return false;
+    }
+
     var userAuthItems = getUserAuthItems(user);
     var hasAccess = _.contains(userAuthItems, authItemName)
     //console.log('Does ' + user + ' have access to ' + authItemName, hasAccess)
