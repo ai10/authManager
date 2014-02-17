@@ -4,7 +4,7 @@
   /**
    * Subscribe to auth items.
    */
-  Meteor.subscribe('authItems');
+  Meteor.subscribe('authItems', AuthManager.enableCache);
 
 }());
 

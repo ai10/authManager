@@ -19,6 +19,10 @@ AuthManager = {};
 
   var userAuthItemsCache = {};
 
+  // allow caching of auth items (since computation is expensive)
+  // but only start caching when we have collections fully loaded
+  var cachingEnabled = false;
+
   /**
    * Check if this user has access to this authItem.
    * If it's a role, check all child permissions.
@@ -36,9 +40,9 @@ AuthManager = {};
       return false
     }
 
-    // Require user and auth items to be loaded before doing the checks.
-    // Prevents checking permissions and caching them if they are not loaded yet.
-    if (user.authItems !== undefined && Meteor.authItems.find().count() <= 0) {
+
+    // Require user's auth items to be loaded before doing the checks
+    if (user.authItems === undefined) {
       return false;
     }
 
@@ -56,12 +60,13 @@ AuthManager = {};
    * @return Strings[]  List of auth items
    */
   function getUserAuthItems(user) {
-    if (Meteor.isServer) {
+    if (Meteor.isServer || !cachingEnabled) {
       // Don't use cache on the server, since we don't have cache invalidation.
       // Will cause issues on the client, since users access checks will be using cached values.
       return buildValidAuthItems(user.authItems);
     }
 
+    // use cache
     if (userAuthItemsCache[user._id] === undefined) {
       userAuthItemsCache[user._id] = buildValidAuthItems(user.authItems);
     }
@@ -98,6 +103,20 @@ AuthManager = {};
     });
 
     return authItems
+  }
+
+  /**
+   * Enabled caching.
+   */
+  AuthManager.enableCache = function() {
+    cachingEnabled = true;
+  }
+
+  /**
+   * Disable caching.
+   */
+  AuthManager.disableCache = function() {
+    cachingEnabled = false;
   }
 
   /**
